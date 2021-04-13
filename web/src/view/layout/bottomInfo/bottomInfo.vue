@@ -3,20 +3,20 @@
     <div>
       <span>Powered by</span>
       <span>
-      <a href="https://github.com/flipped-aurora/gin-vue-admin">gin-vue-admin</a>
+        <a href="https://github.com/flipped-aurora/gin-vue-admin"
+          >课程设计管理系统</a
+        >
       </span>
       <el-divider direction="vertical"></el-divider>
       <span>Copyright</span>
-      <span>
-      <a href="https://github.com/flipped-aurora">flipped-aurora团队</a>
-      </span>
+      <span> </span>
     </div>
   </div>
 </template>
 <script>
 export default {
-    name:"BottomInfo"
-}
+  name: "BottomInfo",
+};
 </script>
 <style lang="scss">
 .bottom-info {
@@ -29,7 +29,7 @@ export default {
   div {
     display: flex;
     justify-content: center;
-    span{
+    span {
       margin: 0 3px;
     }
   }
