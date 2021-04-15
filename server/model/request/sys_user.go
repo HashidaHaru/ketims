@@ -31,3 +31,7 @@ type SetUserAuth struct {
 	UUID        uuid.UUID `json:"uuid"`
 	AuthorityId string    `json:"authorityId"`
 }
+
+type GetUsersByAuthorityId struct {
+	AuthorityId string `json:"authorityId" form:"authorityId"`
+}

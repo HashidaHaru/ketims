@@ -98,3 +98,11 @@ export const createNotification = (data) => {
          params
      })
  }
+
+ export const getLatestNotification = (params) => {
+     return service({
+        url: "/notification/getLatestNotification",
+        method: 'get',
+        params
+     })
+ }

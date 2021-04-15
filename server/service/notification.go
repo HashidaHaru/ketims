@@ -35,7 +35,7 @@ func DeleteNotification(notification model.Notification) (err error) {
 //@return: err error
 
 func DeleteNotificationByIds(ids request.IdsReq) (err error) {
-	err = global.GVA_DB.Delete(&[]model.Notification{},"id in ?",ids.Ids).Error
+	err = global.GVA_DB.Delete(&[]model.Notification{}, "id in ?", ids.Ids).Error
 	return err
 }
 
@@ -70,11 +70,18 @@ func GetNotification(id uint) (err error, notification model.Notification) {
 func GetNotificationInfoList(info request.NotificationSearch) (err error, list interface{}, total int64) {
 	limit := info.PageSize
 	offset := info.PageSize * (info.Page - 1)
-    // 创建db
+	// 创建db
 	db := global.GVA_DB.Model(&model.Notification{})
-    var notifications []model.Notification
-    // 如果有条件搜索 下方会自动创建搜索语句
+	var notifications []model.Notification
+	// 如果有条件搜索 下方会自动创建搜索语句
 	err = db.Count(&total).Error
 	err = db.Limit(limit).Offset(offset).Find(&notifications).Error
 	return err, notifications, total
+}
+
+func GetLatestNotification() (n model.Notification, err error) {
+	// 创建db
+	db := global.GVA_DB.Model(&model.Notification{})
+	err = db.Order("created_at DESC").First(&n).Error
+	return n, err
 }

@@ -2,12 +2,13 @@ package v1
 
 import (
 	"gin-vue-admin/global"
-    "gin-vue-admin/model"
-    "gin-vue-admin/model/request"
-    "gin-vue-admin/model/response"
-    "gin-vue-admin/service"
-    "github.com/gin-gonic/gin"
-    "go.uber.org/zap"
+	"gin-vue-admin/model"
+	"gin-vue-admin/model/request"
+	"gin-vue-admin/model/response"
+	"gin-vue-admin/service"
+
+	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 )
 
 // @Tags Notification
@@ -22,7 +23,7 @@ func CreateNotification(c *gin.Context) {
 	var notification model.Notification
 	_ = c.ShouldBindJSON(&notification)
 	if err := service.CreateNotification(notification); err != nil {
-        global.GVA_LOG.Error("创建失败!", zap.Any("err", err))
+		global.GVA_LOG.Error("创建失败!", zap.Any("err", err))
 		response.FailWithMessage("创建失败", c)
 	} else {
 		response.OkWithMessage("创建成功", c)
@@ -41,7 +42,7 @@ func DeleteNotification(c *gin.Context) {
 	var notification model.Notification
 	_ = c.ShouldBindJSON(&notification)
 	if err := service.DeleteNotification(notification); err != nil {
-        global.GVA_LOG.Error("删除失败!", zap.Any("err", err))
+		global.GVA_LOG.Error("删除失败!", zap.Any("err", err))
 		response.FailWithMessage("删除失败", c)
 	} else {
 		response.OkWithMessage("删除成功", c)
@@ -58,9 +59,9 @@ func DeleteNotification(c *gin.Context) {
 // @Router /notification/deleteNotificationByIds [delete]
 func DeleteNotificationByIds(c *gin.Context) {
 	var IDS request.IdsReq
-    _ = c.ShouldBindJSON(&IDS)
+	_ = c.ShouldBindJSON(&IDS)
 	if err := service.DeleteNotificationByIds(IDS); err != nil {
-        global.GVA_LOG.Error("批量删除失败!", zap.Any("err", err))
+		global.GVA_LOG.Error("批量删除失败!", zap.Any("err", err))
 		response.FailWithMessage("批量删除失败", c)
 	} else {
 		response.OkWithMessage("批量删除成功", c)
@@ -79,7 +80,7 @@ func UpdateNotification(c *gin.Context) {
 	var notification model.Notification
 	_ = c.ShouldBindJSON(&notification)
 	if err := service.UpdateNotification(notification); err != nil {
-        global.GVA_LOG.Error("更新失败!", zap.Any("err", err))
+		global.GVA_LOG.Error("更新失败!", zap.Any("err", err))
 		response.FailWithMessage("更新失败", c)
 	} else {
 		response.OkWithMessage("更新成功", c)
@@ -98,7 +99,7 @@ func FindNotification(c *gin.Context) {
 	var notification model.Notification
 	_ = c.ShouldBindQuery(&notification)
 	if err, renotification := service.GetNotification(notification.ID); err != nil {
-        global.GVA_LOG.Error("查询失败!", zap.Any("err", err))
+		global.GVA_LOG.Error("查询失败!", zap.Any("err", err))
 		response.FailWithMessage("查询失败", c)
 	} else {
 		response.OkWithData(gin.H{"renotification": renotification}, c)
@@ -117,14 +118,24 @@ func GetNotificationList(c *gin.Context) {
 	var pageInfo request.NotificationSearch
 	_ = c.ShouldBindQuery(&pageInfo)
 	if err, list, total := service.GetNotificationInfoList(pageInfo); err != nil {
-	    global.GVA_LOG.Error("获取失败", zap.Any("err", err))
-        response.FailWithMessage("获取失败", c)
-    } else {
-        response.OkWithDetailed(response.PageResult{
-            List:     list,
-            Total:    total,
-            Page:     pageInfo.Page,
-            PageSize: pageInfo.PageSize,
-        }, "获取成功", c)
-    }
+		global.GVA_LOG.Error("获取失败", zap.Any("err", err))
+		response.FailWithMessage("获取失败", c)
+	} else {
+		response.OkWithDetailed(response.PageResult{
+			List:     list,
+			Total:    total,
+			Page:     pageInfo.Page,
+			PageSize: pageInfo.PageSize,
+		}, "获取成功", c)
+	}
+}
+
+func GetLatestNotification(c *gin.Context) {
+	var notification model.Notification
+	_ = c.ShouldBindQuery(&notification)
+	if latest, err := service.GetLatestNotification(); err != nil {
+		response.FailWithMessage(err.Error(), c)
+	} else {
+		response.OkWithData(gin.H{"latest": latest}, c)
+	}
 }

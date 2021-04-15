@@ -6,6 +6,7 @@ import (
 	"gin-vue-admin/model"
 	"gin-vue-admin/model/request"
 	"gin-vue-admin/utils"
+
 	uuid "github.com/satori/go.uuid"
 	"gorm.io/gorm"
 )
@@ -128,4 +129,11 @@ func FindUserByUuid(uuid string) (err error, user *model.SysUser) {
 		return errors.New("用户不存在"), &u
 	}
 	return nil, &u
+}
+
+func GetUsersByAuthorityId(authorityId string) (list []model.SysUser, err error) {
+	list = make([]model.SysUser, 0)
+	db := global.GVA_DB.Model(&model.SysUser{})
+	err = db.Where("authority_id = ?", authorityId).Find(&list).Error
+	return
 }

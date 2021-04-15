@@ -8,11 +8,12 @@ import (
 	"gin-vue-admin/model/response"
 	"gin-vue-admin/service"
 	"gin-vue-admin/utils"
+	"time"
+
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis"
 	"go.uber.org/zap"
-	"time"
 )
 
 // @Tags Base
@@ -283,4 +284,23 @@ func getUserAuthorityId(c *gin.Context) string {
 		waitUse := claims.(*request.CustomClaims)
 		return waitUse.AuthorityId
 	}
+}
+
+func GetUsersByAuthorityId(c *gin.Context) {
+	var v request.GetUsersByAuthorityId
+	err := c.ShouldBind(&v)
+	if err != nil {
+		response.FailWithMessage(err.Error(), c)
+		return
+	}
+
+	list, err := service.GetUsersByAuthorityId(v.AuthorityId)
+	if err != nil {
+		response.FailWithMessage(err.Error(), c)
+		return
+	}
+	response.OkWithDetailed(response.NormalResult{
+		List: list,
+	}, "获取成功", c)
+
 }
