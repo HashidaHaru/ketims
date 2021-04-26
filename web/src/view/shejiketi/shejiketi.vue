@@ -5,11 +5,19 @@
         <el-form-item label="课题名称">
           <el-input placeholder="搜索条件" v-model="searchInfo.name"></el-input>
         </el-form-item>
-        <el-form-item label="教师id">
-          <el-input
-            placeholder="搜索条件"
+        <el-form-item label="教师">
+          <el-select
             v-model="searchInfo.teacherId"
-          ></el-input>
+            placeholder="搜索条件"
+            clearable
+          >
+            <el-option
+              v-for="teacher in teacherArray"
+              :key="teacher.ID"
+              :label="teacher.nickName"
+              :value="teacher.ID"
+            ></el-option>
+          </el-select>
         </el-form-item>
         <el-form-item>
           <el-button @click="onSubmit" type="primary">查询</el-button>
@@ -69,12 +77,29 @@
       ></el-table-column>
 
       <el-table-column
-        label="教师id"
-        prop="teacherId"
+        label="教师"
+        prop="teacher"
         width="120"
       ></el-table-column>
 
-      <el-table-column label="按钮组">
+      <el-table-column label="按钮组" v-if="userInfo.authorityId === '1001'">
+        <template slot-scope="scope">
+          <el-button
+            class="table-button"
+            @click="updateShejiKeti(scope.row)"
+            size="small"
+            type="primary"
+            icon="el-icon-edit"
+          >
+            报名
+          </el-button>
+        </template>
+      </el-table-column>
+
+      <el-table-column
+        label="按钮组"
+        v-if="userInfo.authorityId === '1000' || userInfo.authorityId === '888'"
+      >
         <template slot-scope="scope">
           <el-button
             class="table-button"
@@ -155,6 +180,9 @@ import {
   findShejiKeti,
   getShejiKetiList,
 } from "@/api/shejiketi"; //  此处请自行替换地址
+import { getUsersByAuthorityId } from "@/api/user";
+import { mapGetters } from "vuex";
+
 import { formatTimeToStr } from "@/utils/date";
 import infoList from "@/mixins/infoList";
 export default {
@@ -167,6 +195,7 @@ export default {
       type: "",
       deleteVisible: false,
       multipleSelection: [],
+      teacherArray: [],
       formData: {
         name: "",
         intro: "",
@@ -190,6 +219,9 @@ export default {
         return "";
       }
     },
+  },
+  computed: {
+    ...mapGetters("user", ["userInfo"]),
   },
   methods: {
     //条件搜索前端看此方法
@@ -294,6 +326,12 @@ export default {
   },
   async created() {
     await this.getTableData();
+    let res = await getUsersByAuthorityId({
+      authorityId: "1000",
+    });
+    if (res.code === 0) {
+      this.teacherArray = res.data.list;
+    }
   },
 };
 </script>

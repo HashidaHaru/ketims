@@ -35,7 +35,7 @@ func DeleteShejiKeti(shejiketi model.ShejiKeti) (err error) {
 //@return: err error
 
 func DeleteShejiKetiByIds(ids request.IdsReq) (err error) {
-	err = global.GVA_DB.Delete(&[]model.ShejiKeti{},"id in ?",ids.Ids).Error
+	err = global.GVA_DB.Delete(&[]model.ShejiKeti{}, "id in ?", ids.Ids).Error
 	return err
 }
 
@@ -66,21 +66,37 @@ func GetShejiKeti(id uint) (err error, shejiketi model.ShejiKeti) {
 //@description: 分页获取ShejiKeti记录
 //@param: info request.ShejiKetiSearch
 //@return: err error, list interface{}, total int64
+type ShejiKetiInfo struct {
+	model.ShejiKeti
+	Teacher string `json:"teacher" gorm:"-"`
+}
 
 func GetShejiKetiInfoList(info request.ShejiKetiSearch) (err error, list interface{}, total int64) {
 	limit := info.PageSize
 	offset := info.PageSize * (info.Page - 1)
-    // 创建db
+	// 创建db
 	db := global.GVA_DB.Model(&model.ShejiKeti{})
-    var shejiketis []model.ShejiKeti
-    // 如果有条件搜索 下方会自动创建搜索语句
-    if info.Name != "" {
-        db = db.Where("`name` = ?",info.Name)
-    }
-    if info.TeacherId != 0 {
-        db = db.Where("`teacher_id` = ?",info.TeacherId)
-    }
+	array := make([]ShejiKetiInfo, 0)
+	// 如果有条件搜索 下方会自动创建搜索语句
+	if info.Name != "" {
+		db = db.Where("`name` = ?", info.Name)
+	}
+	if info.TeacherId != 0 {
+		db = db.Where("`teacher_id` = ?", info.TeacherId)
+	}
 	err = db.Count(&total).Error
-	err = db.Limit(limit).Offset(offset).Find(&shejiketis).Error
-	return err, shejiketis, total
+	if err != nil {
+		return err, array, total
+	}
+	err = db.Model(&model.ShejiKeti{}).Limit(limit).Offset(offset).Find(&array).Error
+
+	for index, item := range array {
+		err, user := FindUserById(item.TeacherId)
+		if err != nil {
+			return err, array, total
+		}
+		array[index].Teacher = user.NickName
+
+	}
+	return err, array, total
 }

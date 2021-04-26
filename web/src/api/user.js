@@ -111,3 +111,13 @@ export const setUserInfo = (data) => {
         data: data
     })
 }
+
+
+
+export const getUsersByAuthorityId = (params) => {
+    return service({
+        url:"/user/getUsersByAuthorityId",
+        method:"get",
+        params
+    })
+}
