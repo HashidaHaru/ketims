@@ -56,8 +56,17 @@ func UpdateShejiKeti(shejiketi model.ShejiKeti) (err error) {
 //@param: id uint
 //@return: err error, shejiketi model.ShejiKeti
 
-func GetShejiKeti(id uint) (err error, shejiketi model.ShejiKeti) {
-	err = global.GVA_DB.Where("id = ?", id).First(&shejiketi).Error
+func GetShejiKeti(id uint) (shejiketi ShejiKetiInfo, err error) {
+	err = global.GVA_DB.Model(&model.ShejiKeti{}).Where("id = ?", id).First(&shejiketi).Error
+	if err != nil {
+		return
+	}
+	err, user := FindUserById(shejiketi.TeacherId)
+	if err != nil {
+		return
+	}
+	shejiketi.Teacher = user.NickName
+	shejiketi.TeacherIntroduction = user.Introduction
 	return
 }
 
@@ -68,7 +77,8 @@ func GetShejiKeti(id uint) (err error, shejiketi model.ShejiKeti) {
 //@return: err error, list interface{}, total int64
 type ShejiKetiInfo struct {
 	model.ShejiKeti
-	Teacher string `json:"teacher" gorm:"-"`
+	Teacher             string `json:"teacher" gorm:"-"`
+	TeacherIntroduction string `json:"teacherIntroduction" gorm:"-"`
 }
 
 func GetShejiKetiInfoList(info request.ShejiKetiSearch) (err error, list interface{}, total int64) {
@@ -96,7 +106,7 @@ func GetShejiKetiInfoList(info request.ShejiKetiSearch) (err error, list interfa
 			return err, array, total
 		}
 		array[index].Teacher = user.NickName
-
+		array[index].TeacherIntroduction = user.Introduction
 	}
 	return err, array, total
 }

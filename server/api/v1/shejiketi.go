@@ -2,12 +2,13 @@ package v1
 
 import (
 	"gin-vue-admin/global"
-    "gin-vue-admin/model"
-    "gin-vue-admin/model/request"
-    "gin-vue-admin/model/response"
-    "gin-vue-admin/service"
-    "github.com/gin-gonic/gin"
-    "go.uber.org/zap"
+	"gin-vue-admin/model"
+	"gin-vue-admin/model/request"
+	"gin-vue-admin/model/response"
+	"gin-vue-admin/service"
+
+	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 )
 
 // @Tags ShejiKeti
@@ -22,7 +23,7 @@ func CreateShejiKeti(c *gin.Context) {
 	var shejiketi model.ShejiKeti
 	_ = c.ShouldBindJSON(&shejiketi)
 	if err := service.CreateShejiKeti(shejiketi); err != nil {
-        global.GVA_LOG.Error("创建失败!", zap.Any("err", err))
+		global.GVA_LOG.Error("创建失败!", zap.Any("err", err))
 		response.FailWithMessage("创建失败", c)
 	} else {
 		response.OkWithMessage("创建成功", c)
@@ -41,7 +42,7 @@ func DeleteShejiKeti(c *gin.Context) {
 	var shejiketi model.ShejiKeti
 	_ = c.ShouldBindJSON(&shejiketi)
 	if err := service.DeleteShejiKeti(shejiketi); err != nil {
-        global.GVA_LOG.Error("删除失败!", zap.Any("err", err))
+		global.GVA_LOG.Error("删除失败!", zap.Any("err", err))
 		response.FailWithMessage("删除失败", c)
 	} else {
 		response.OkWithMessage("删除成功", c)
@@ -58,9 +59,9 @@ func DeleteShejiKeti(c *gin.Context) {
 // @Router /shejiketi/deleteShejiKetiByIds [delete]
 func DeleteShejiKetiByIds(c *gin.Context) {
 	var IDS request.IdsReq
-    _ = c.ShouldBindJSON(&IDS)
+	_ = c.ShouldBindJSON(&IDS)
 	if err := service.DeleteShejiKetiByIds(IDS); err != nil {
-        global.GVA_LOG.Error("批量删除失败!", zap.Any("err", err))
+		global.GVA_LOG.Error("批量删除失败!", zap.Any("err", err))
 		response.FailWithMessage("批量删除失败", c)
 	} else {
 		response.OkWithMessage("批量删除成功", c)
@@ -79,7 +80,7 @@ func UpdateShejiKeti(c *gin.Context) {
 	var shejiketi model.ShejiKeti
 	_ = c.ShouldBindJSON(&shejiketi)
 	if err := service.UpdateShejiKeti(shejiketi); err != nil {
-        global.GVA_LOG.Error("更新失败!", zap.Any("err", err))
+		global.GVA_LOG.Error("更新失败!", zap.Any("err", err))
 		response.FailWithMessage("更新失败", c)
 	} else {
 		response.OkWithMessage("更新成功", c)
@@ -97,8 +98,8 @@ func UpdateShejiKeti(c *gin.Context) {
 func FindShejiKeti(c *gin.Context) {
 	var shejiketi model.ShejiKeti
 	_ = c.ShouldBindQuery(&shejiketi)
-	if err, reshejiketi := service.GetShejiKeti(shejiketi.ID); err != nil {
-        global.GVA_LOG.Error("查询失败!", zap.Any("err", err))
+	if reshejiketi, err := service.GetShejiKeti(shejiketi.ID); err != nil {
+		global.GVA_LOG.Error("查询失败!", zap.Any("err", err))
 		response.FailWithMessage("查询失败", c)
 	} else {
 		response.OkWithData(gin.H{"reshejiketi": reshejiketi}, c)
@@ -117,14 +118,14 @@ func GetShejiKetiList(c *gin.Context) {
 	var pageInfo request.ShejiKetiSearch
 	_ = c.ShouldBindQuery(&pageInfo)
 	if err, list, total := service.GetShejiKetiInfoList(pageInfo); err != nil {
-	    global.GVA_LOG.Error("获取失败", zap.Any("err", err))
-        response.FailWithMessage("获取失败", c)
-    } else {
-        response.OkWithDetailed(response.PageResult{
-            List:     list,
-            Total:    total,
-            Page:     pageInfo.Page,
-            PageSize: pageInfo.PageSize,
-        }, "获取成功", c)
-    }
+		global.GVA_LOG.Error("获取失败", zap.Any("err", err))
+		response.FailWithMessage("获取失败", c)
+	} else {
+		response.OkWithDetailed(response.PageResult{
+			List:     list,
+			Total:    total,
+			Page:     pageInfo.Page,
+			PageSize: pageInfo.PageSize,
+		}, "获取成功", c)
+	}
 }

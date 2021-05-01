@@ -9,7 +9,7 @@
       </div>
     </el-card>
 
-    <div class="shadow">
+    <!-- <div class="shadow">
       <el-row :gutter="20">
         <el-col
           :span="4"
@@ -24,7 +24,7 @@
           </el-card>
         </el-col>
       </el-row>
-    </div>
+    </div> -->
   </div>
 </template>
 

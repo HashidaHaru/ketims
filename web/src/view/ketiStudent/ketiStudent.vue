@@ -22,29 +22,6 @@
         <el-form-item>
           <el-button @click="onSubmit" type="primary">查询</el-button>
         </el-form-item>
-        <el-form-item>
-          <el-button @click="openDialog" type="primary">新增设计课题</el-button>
-        </el-form-item>
-        <el-form-item>
-          <el-popover placement="top" v-model="deleteVisible" width="160">
-            <p>确定要删除吗？</p>
-            <div style="text-align: right; margin: 0">
-              <el-button @click="deleteVisible = false" size="mini" type="text"
-                >取消</el-button
-              >
-              <el-button @click="onDelete" size="mini" type="primary"
-                >确定</el-button
-              >
-            </div>
-            <el-button
-              icon="el-icon-delete"
-              size="mini"
-              slot="reference"
-              type="danger"
-              >批量删除</el-button
-            >
-          </el-popover>
-        </el-form-item>
       </el-form>
     </div>
     <el-table
@@ -56,7 +33,6 @@
       style="width: 100%"
       tooltip-effect="dark"
     >
-      <el-table-column type="selection" width="55"></el-table-column>
       <el-table-column label="日期" width="180">
         <template slot-scope="scope">{{
           scope.row.CreatedAt | formatDate
@@ -82,40 +58,12 @@
         width="120"
       ></el-table-column>
 
-      <el-table-column label="按钮组" v-if="userInfo.authorityId === '1001'">
+      <el-table-column label="按钮组">
         <template slot-scope="scope">
-          <el-button
-            class="table-button"
-            @click="updateShejiKeti(scope.row)"
-            size="small"
-            type="primary"
-            icon="el-icon-edit"
-          >
+          <el-button @click="updateShejiKeti(scope.row)" type="primary">
             详细信息
           </el-button>
-        </template>
-      </el-table-column>
-
-      <el-table-column
-        label="按钮组"
-        v-if="userInfo.authorityId === '1000' || userInfo.authorityId === '888'"
-      >
-        <template slot-scope="scope">
-          <el-button
-            class="table-button"
-            @click="updateShejiKeti(scope.row)"
-            size="small"
-            type="primary"
-            icon="el-icon-edit"
-            >变更</el-button
-          >
-          <el-button
-            type="danger"
-            icon="el-icon-delete"
-            size="mini"
-            @click="deleteRow(scope.row)"
-            >删除</el-button
-          >
+          <el-button @click="submitApply" type="primary">报名信息</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -130,6 +78,39 @@
       @size-change="handleSizeChange"
       layout="total, sizes, prev, pager, next, jumper"
     ></el-pagination>
+
+    <el-dialog
+      :before-close="closeBaomingDialog"
+      :visible.sync="baomingFormVisible"
+      title="马上报名"
+    >
+      <el-form :model="formData" label-position="right" label-width="80px">
+        <el-form-item label="审核状态">
+          <el-input
+            v-model="formData.name"
+            clearable
+            placeholder="请输入"
+          ></el-input>
+        </el-form-item>
+
+        <el-form-item label="审核材料:">
+          <el-upload
+            class="upload-demo"
+            action="http://101.132.104.14:8888/fileUploadAndDownload/upload"
+            :file-list="formData.pics"
+            :on-success="handleSuccess"
+            :on-remove="handleRemove"
+            :on-preview="handlePreview"
+            list-type="picture"
+          >
+            <el-button size="small" type="primary">点击上传</el-button>
+            <div slot="tip" class="el-upload__tip">
+              只能上传jpg/png文件，且不超过500kb
+            </div>
+          </el-upload>
+        </el-form-item>
+      </el-form>
+    </el-dialog>
 
     <el-dialog
       :before-close="closeDialog"
@@ -168,39 +149,6 @@
           ></el-input>
         </el-form-item>
       </el-form>
-
-      <el-form-item label="申请材料" v-if="userInfo.authorityId === '1001'">
-        <el-upload
-          class="upload-demo"
-          action="http://101.132.104.14:8889/fileUploadAndDownload/upload"
-          :file-list="formData.pics"
-          :on-success="handleSuccess"
-          :on-remove="handleRemove"
-          :on-preview="handlePreview"
-          list-type="picture"
-        >
-          <el-button size="small" type="primary">点击上传</el-button>
-          <div slot="tip" class="el-upload__tip">
-            只能上传jpg/png文件，且不超过500kb
-          </div>
-        </el-upload>
-      </el-form-item>
-
-      <div
-        class="dialog-footer"
-        slot="footer"
-        v-if="userInfo.authorityId === '1001'"
-      >
-        <el-button @click="submitApply" type="primary">马上报名</el-button>
-      </div>
-      <div
-        class="dialog-footer"
-        slot="footer"
-        v-if="userInfo.authorityId === '1000' || userInfo.authorityId === '888'"
-      >
-        <el-button @click="closeDialog">取 消</el-button>
-        <el-button @click="enterDialog" type="primary">确 定</el-button>
-      </div>
     </el-dialog>
   </div>
 </template>
@@ -227,6 +175,7 @@ export default {
     return {
       listApi: getShejiKetiList,
       dialogFormVisible: false,
+      baomingFormVisible: false,
       type: "",
       deleteVisible: false,
       multipleSelection: [],
@@ -235,6 +184,12 @@ export default {
         name: "",
         intro: "",
         teacherId: 0,
+        teacher: "",
+        teacherIntroduction: "",
+      },
+      baoMingForm: {
+        pics: [],
+        ketiId: 0,
       },
     };
   },
@@ -259,7 +214,22 @@ export default {
     ...mapGetters("user", ["userInfo"]),
   },
   methods: {
-    submitApply() {},
+    async submitApply() {
+      let r = {
+        studentId: this.userInfo.ID,
+        ketiId: this.formData.ID,
+      };
+      r.pics = JSON.stringify(this.formData.pics);
+
+      const res = await createKetiApply(r);
+      if (res.code == 0) {
+        this.$message({
+          type: "success",
+          message: "申请成功",
+        });
+        this.closeDialog();
+      }
+    },
     handlePreview(file) {
       window.open(file.url);
     },
@@ -334,6 +304,13 @@ export default {
         name: "",
         intro: "",
         teacherId: 0,
+      };
+    },
+    closeBaomingDialog() {
+      this.baomingFormVisible = false;
+      this.baoMingForm = {
+        pics: [],
+        ketiId: 0,
       };
     },
     async deleteShejiKeti(row) {
