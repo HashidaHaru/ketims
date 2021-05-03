@@ -63,7 +63,9 @@
           <el-button @click="updateShejiKeti(scope.row)" type="primary">
             详细信息
           </el-button>
-          <el-button @click="submitApply" type="primary">报名信息</el-button>
+          <el-button @click="checkKetiApply(scope.row)" type="primary"
+            >报名信息</el-button
+          >
         </template>
       </el-table-column>
     </el-table>
@@ -82,34 +84,44 @@
     <el-dialog
       :before-close="closeBaomingDialog"
       :visible.sync="baomingFormVisible"
-      title="马上报名"
+      title="报名信息"
     >
-      <el-form :model="formData" label-position="right" label-width="80px">
-        <el-form-item label="审核状态">
-          <el-input
-            v-model="formData.name"
-            clearable
-            placeholder="请输入"
-          ></el-input>
+      <el-form :model="baoMingForm" label-position="right" label-width="80px">
+        <el-form-item label="状态:" v-if="baoMingForm.status !== 0">
+          <el-tag type="warning" v-if="baoMingForm.status === 1">审核中</el-tag>
+          <el-tag type="success" v-if="baoMingForm.status === 2">通过</el-tag>
+          <el-tag type="danger" v-if="baoMingForm.status === 3">拒绝</el-tag>
         </el-form-item>
 
         <el-form-item label="审核材料:">
           <el-upload
             class="upload-demo"
             action="http://101.132.104.14:8888/fileUploadAndDownload/upload"
-            :file-list="formData.pics"
+            :file-list="baoMingForm.pics"
             :on-success="handleSuccess"
             :on-remove="handleRemove"
             :on-preview="handlePreview"
             list-type="picture"
           >
-            <el-button size="small" type="primary">点击上传</el-button>
-            <div slot="tip" class="el-upload__tip">
+            <el-button
+              size="small"
+              type="primary"
+              v-if="baoMingForm.status === 0"
+              >点击上传</el-button
+            >
+            <div
+              slot="tip"
+              class="el-upload__tip"
+              v-if="baoMingForm.status === 0"
+            >
               只能上传jpg/png文件，且不超过500kb
             </div>
           </el-upload>
         </el-form-item>
       </el-form>
+      <div class="dialog-footer" slot="footer" v-if="baoMingForm.status === 0">
+        <el-button @click="submitApply" type="primary">马上报名</el-button>
+      </div>
     </el-dialog>
 
     <el-dialog
@@ -162,7 +174,7 @@ import {
   findShejiKeti,
   getShejiKetiList,
 } from "@/api/shejiketi"; //  此处请自行替换地址
-import { createKetiApply } from "@/api/ketiApply";
+import { createKetiApply, checkKetiApply } from "@/api/ketiApply";
 import { getUsersByAuthorityId } from "@/api/user";
 import { mapGetters } from "vuex";
 
@@ -190,6 +202,7 @@ export default {
       baoMingForm: {
         pics: [],
         ketiId: 0,
+        status: 0,
       },
     };
   },
@@ -217,9 +230,10 @@ export default {
     async submitApply() {
       let r = {
         studentId: this.userInfo.ID,
-        ketiId: this.formData.ID,
+        ketiId: this.baoMingForm.ketiId,
+        status: 1,
       };
-      r.pics = JSON.stringify(this.formData.pics);
+      r.pics = JSON.stringify(this.baoMingForm.pics);
 
       const res = await createKetiApply(r);
       if (res.code == 0) {
@@ -235,16 +249,16 @@ export default {
     },
     handleSuccess(response) {
       let { name, url } = response.data.file;
-      url = "http://101.132.104.14:8889/" + url;
+      url = "http://101.132.104.14:8888/" + url;
       console.log(name, url);
-      console.log(this.formData.pics);
-      this.formData.pics.push({ name, url });
+      console.log(this.baoMingForm.pics);
+      this.baoMingForm.pics.push({ name, url });
     },
     handleRemove(file) {
-      this.formData.pics = this.formData.pics.filter(
+      this.baoMingForm.pics = this.baoMingForm.pics.filter(
         (item) => item.name !== file.name
       );
-      console.log(this.formData.pics);
+      console.log(this.baoMingForm.pics);
     },
     //条件搜索前端看此方法
     onSubmit() {
@@ -289,6 +303,19 @@ export default {
         this.deleteVisible = false;
         this.getTableData();
       }
+    },
+    async checkKetiApply(row) {
+      const res = await checkKetiApply({
+        ketiId: row.ID,
+        studentId: this.userInfo.ID,
+      });
+
+      this.baoMingForm.status = res.data.ketiApply.status;
+      this.baoMingForm.ketiId = row.ID;
+      if (res.data.ketiApply.pics !== "") {
+        this.baoMingForm.pics = JSON.parse(res.data.ketiApply.pics);
+      }
+      this.baomingFormVisible = true;
     },
     async updateShejiKeti(row) {
       const res = await findShejiKeti({ ID: row.ID });

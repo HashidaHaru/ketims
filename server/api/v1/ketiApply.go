@@ -111,10 +111,12 @@ func CheckKetiApply(c *gin.Context) {
 	err := c.ShouldBindQuery(&v)
 	if err != nil {
 		response.FailWithMessage(err.Error(), c)
+		return
 	}
 	a, err := service.FindKetiApply(v.KetiId, v.StudentId)
 	if err != nil {
 		response.FailWithMessage(err.Error(), c)
+		return
 	}
 	response.OkWithData(gin.H{"ketiApply": a}, c)
 }

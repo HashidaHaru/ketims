@@ -4,6 +4,8 @@ import (
 	"gin-vue-admin/global"
 	"gin-vue-admin/model"
 	"gin-vue-admin/model/request"
+
+	"gorm.io/gorm"
 )
 
 //@author: [piexlmax](https://github.com/piexlmax)
@@ -63,6 +65,9 @@ func GetKetiApply(id uint) (err error, ketiApply model.KetiApply) {
 
 func FindKetiApply(ketiId uint, studentId uint) (ketiApply model.KetiApply, err error) {
 	err = global.GVA_DB.Where("keti_id = ? AND student_id = ?", ketiId, studentId).First(&ketiApply).Error
+	if err == gorm.ErrRecordNotFound {
+		return ketiApply, nil
+	}
 	return
 }
 
