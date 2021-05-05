@@ -24,7 +24,7 @@ var isUploaded = false; // 文件已经上传成功了
 import { mapGetters } from "vuex";
 import { checkFileMd5, mergeFileMd5 } from "@/api/simpleUploader";
 import SparkMD5 from "spark-md5";
-const path = process.env.VUE_APP_BASE_API;
+// const path = process.env.VUE_APP_BASE_API;
 export default {
   name: "simpleUploader",
   data() {
@@ -129,6 +129,7 @@ export default {
     // 上传成功
     async onFileSuccess(rootFile, file) {
       await mergeFileMd5({ md5: file.uniqueIdentifier, fileName: file.name });
+      this.$emit("one-success", file.name);
     },
     onFileError(rootFile, file, response) {
       this.$message({
@@ -142,7 +143,7 @@ export default {
 
 <style>
 .uploader-example {
-  width: 880px;
+  width: 400px;
   padding: 15px;
   margin: 115px 15px 20px;
   font-size: 12px;

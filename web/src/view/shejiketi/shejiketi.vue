@@ -167,24 +167,26 @@
             autosize
           ></el-input>
         </el-form-item>
-      </el-form>
 
-      <el-form-item label="申请材料" v-if="userInfo.authorityId === '1001'">
-        <el-upload
-          class="upload-demo"
-          action="http://101.132.104.14:8889/fileUploadAndDownload/upload"
-          :file-list="formData.pics"
-          :on-success="handleSuccess"
-          :on-remove="handleRemove"
-          :on-preview="handlePreview"
-          list-type="picture"
+        <el-form-item
+          v-for="(r, index) in resources"
+          :key="r.key"
+          :label="'资源' + index"
         >
-          <el-button size="small" type="primary">点击上传</el-button>
-          <div slot="tip" class="el-upload__tip">
-            只能上传jpg/png文件，且不超过500kb
-          </div>
-        </el-upload>
-      </el-form-item>
+          <el-row :gutter="20">
+            <el-col :span="16">
+              <el-link :href="r.value" target="_blank">{{ r.value }}</el-link>
+            </el-col>
+            <el-col :span="4">
+              <el-button @click.prevent="removeResource(r)">删除</el-button>
+            </el-col>
+          </el-row>
+        </el-form-item>
+
+        <el-form-item label="上传资源">
+          <Upload @one-success="oneSuccess" />
+        </el-form-item>
+      </el-form>
 
       <div
         class="dialog-footer"
@@ -214,15 +216,18 @@ import {
   findShejiKeti,
   getShejiKetiList,
 } from "@/api/shejiketi"; //  此处请自行替换地址
-import { createKetiApply } from "@/api/ketiApply";
 import { getUsersByAuthorityId } from "@/api/user";
 import { mapGetters } from "vuex";
+import Upload from "@/view/example/simpleUploader/simpleUploader.vue";
 
 import { formatTimeToStr } from "@/utils/date";
 import infoList from "@/mixins/infoList";
 export default {
   name: "ShejiKeti",
   mixins: [infoList],
+  components: {
+    Upload,
+  },
   data() {
     return {
       listApi: getShejiKetiList,
@@ -236,6 +241,7 @@ export default {
         intro: "",
         teacherId: 0,
       },
+      resources: [],
     };
   },
   filters: {
@@ -259,23 +265,25 @@ export default {
     ...mapGetters("user", ["userInfo"]),
   },
   methods: {
+    removeResource(item) {
+      var index = this.resources.indexOf(item);
+      if (index !== -1) {
+        this.resources.splice(index, 1);
+      }
+    },
+    addResource(url) {
+      this.resources.push({
+        value: url,
+        key: Date.now(),
+      });
+      console.log(this.resources);
+    },
+    oneSuccess(name) {
+      const url = "http://101.132.104.14:8888/uploads/file/" + name;
+      this.addResource(url);
+    },
     submitApply() {},
-    handlePreview(file) {
-      window.open(file.url);
-    },
-    handleSuccess(response) {
-      let { name, url } = response.data.file;
-      url = "http://101.132.104.14:8889/" + url;
-      console.log(name, url);
-      console.log(this.formData.pics);
-      this.formData.pics.push({ name, url });
-    },
-    handleRemove(file) {
-      this.formData.pics = this.formData.pics.filter(
-        (item) => item.name !== file.name
-      );
-      console.log(this.formData.pics);
-    },
+
     //条件搜索前端看此方法
     onSubmit() {
       this.page = 1;
@@ -325,6 +333,9 @@ export default {
       this.type = "update";
       if (res.code == 0) {
         this.formData = res.data.reshejiketi;
+        if (res.data.reshejiketi.resources !== "") {
+          this.resources = JSON.parse(res.data.reshejiketi.resources);
+        }
         this.dialogFormVisible = true;
       }
     },
@@ -350,16 +361,18 @@ export default {
       }
     },
     async enterDialog() {
+      let r = this.formData;
+      r.resources = JSON.stringify(this.resources);
       let res;
       switch (this.type) {
         case "create":
-          res = await createShejiKeti(this.formData);
+          res = await createShejiKeti(r);
           break;
         case "update":
-          res = await updateShejiKeti(this.formData);
+          res = await updateShejiKeti(r);
           break;
         default:
-          res = await createShejiKeti(this.formData);
+          res = await createShejiKeti(r);
           break;
       }
       if (res.code == 0) {

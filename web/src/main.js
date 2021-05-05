@@ -3,16 +3,16 @@ import App from './App.vue'
 
 //  按需引入element
 import {
-    Button, 
-    Select, 
-    Dialog, 
-    Form, 
+    Button,
+    Select,
+    Dialog,
+    Form,
     Input,
-    FormItem, 
-    Option, 
-    Loading, 
-    Message, 
-    Container, 
+    FormItem,
+    Option,
+    Loading,
+    Message,
+    Container,
     Card,
     Dropdown,
     DropdownMenu,
@@ -53,9 +53,10 @@ import {
     Upload,
     Progress,
     MessageBox,
-    Image
+    Image,
+    Link,
 } from 'element-ui';
-
+Vue.use(Link);
 Vue.use(Button);
 Vue.use(Select);
 Vue.use(Dialog);
