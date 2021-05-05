@@ -5,10 +5,11 @@ import (
 	"fmt"
 	"gin-vue-admin/global"
 	"gin-vue-admin/model"
-	"gorm.io/gorm"
 	"io/ioutil"
 	"os"
 	"strconv"
+
+	"gorm.io/gorm"
 )
 
 //@author: [piexlmax](https://github.com/piexlmax)
@@ -40,7 +41,7 @@ func CheckFileMd5(md5 string) (err error, uploads []model.ExaSimpleUploader, isD
 //@return: err error
 
 func MergeFileMd5(md5 string, fileName string) (err error) {
-	finishDir := "./finish/"
+	finishDir := "./uploads/file/"
 	dir := "./chunk/" + md5
 	//如果文件上传成功 不做后续操作 通知成功即可
 	if !errors.Is(global.GVA_DB.First(&model.ExaSimpleUploader{}, "identifier = ? AND is_done = ?", md5, true).Error, gorm.ErrRecordNotFound) {

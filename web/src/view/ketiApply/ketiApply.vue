@@ -2,12 +2,6 @@
   <div>
     <div class="search-term">
       <el-form :inline="true" :model="searchInfo" class="demo-form-inline">
-        <el-form-item label="学生id">
-          <el-input
-            placeholder="搜索条件"
-            v-model="searchInfo.studentId"
-          ></el-input>
-        </el-form-item>
         <el-form-item label="课题id">
           <el-input
             placeholder="搜索条件"
@@ -59,8 +53,8 @@
       </el-table-column>
 
       <el-table-column
-        label="学生id"
-        prop="studentId"
+        label="学生"
+        prop="Student"
         width="120"
       ></el-table-column>
 

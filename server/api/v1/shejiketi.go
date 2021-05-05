@@ -129,3 +129,14 @@ func GetShejiKetiList(c *gin.Context) {
 		}, "获取成功", c)
 	}
 }
+
+func GetShejiKetiAll(c *gin.Context) {
+	list, err := service.GetShejiKetiAll()
+	if err != nil {
+		response.FailWithMessage(err.Error(), c)
+		return
+	}
+	response.OkWithDetailed(response.NormalResult{
+		List: list,
+	}, "获取成功", c)
+}

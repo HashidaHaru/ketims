@@ -77,12 +77,17 @@ func FindKetiApply(ketiId uint, studentId uint) (ketiApply model.KetiApply, err 
 //@param: info request.KetiApplySearch
 //@return: err error, list interface{}, total int64
 
+type KetiApplyInfo struct {
+	model.KetiApply
+	Student string `gorm:"-"`
+}
+
 func GetKetiApplyInfoList(info request.KetiApplySearch) (err error, list interface{}, total int64) {
 	limit := info.PageSize
 	offset := info.PageSize * (info.Page - 1)
 	// 创建db
 	db := global.GVA_DB.Model(&model.KetiApply{})
-	var ketiApplys []model.KetiApply
+	var ketiApplys []KetiApplyInfo
 	// 如果有条件搜索 下方会自动创建搜索语句
 	if info.StudentId != 0 {
 		db = db.Where("`student_id` = ?", info.StudentId)
@@ -91,6 +96,17 @@ func GetKetiApplyInfoList(info request.KetiApplySearch) (err error, list interfa
 		db = db.Where("`keti_id` = ?", info.KetiId)
 	}
 	err = db.Count(&total).Error
+	if err != nil {
+		return
+	}
+
 	err = db.Limit(limit).Offset(offset).Find(&ketiApplys).Error
+	for index, item := range ketiApplys {
+		err, u := FindUserById(int(item.StudentId))
+		if err != nil {
+			return err, nil, 0
+		}
+		ketiApplys[index].Student = u.NickName
+	}
 	return err, ketiApplys, total
 }

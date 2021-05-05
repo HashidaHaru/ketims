@@ -110,3 +110,11 @@ func GetShejiKetiInfoList(info request.ShejiKetiSearch) (err error, list interfa
 	}
 	return err, array, total
 }
+
+func GetShejiKetiAll() (list []model.ShejiKeti, err error) {
+	// 创建db
+	db := global.GVA_DB.Model(&model.ShejiKeti{})
+	list = make([]model.ShejiKeti, 0)
+	err = db.Find(&list).Error
+	return
+}

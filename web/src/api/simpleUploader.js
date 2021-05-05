@@ -1,6 +1,6 @@
 
 
-import service from '@/utils/request'
+import service from '@/utils/requestRely'
 
 // @Tags SimpleUploader
 // @Summary 断点续传插件版示例
