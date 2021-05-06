@@ -155,6 +155,17 @@
               </el-col>
             </el-row>
           </el-form-item>
+
+          <el-form-item label="留言">
+            <el-row :gutter="20">
+              <el-col :span="8">
+                <el-input v-model="question"></el-input>
+              </el-col>
+              <el-col :span="4">
+                <el-button @click.prevent="createQuestion">提交留言</el-button>
+              </el-col>
+            </el-row>
+          </el-form-item>
         </template>
       </el-form>
 
@@ -216,6 +227,7 @@ import {
 } from "@/api/shejiketi"; //  此处请自行替换地址
 import { createKetiApply, checkKetiApply } from "@/api/ketiApply";
 import { checkKetiGroup, updateKetiGroup } from "@/api/ketiGroup";
+import { createQuestion } from "@/api/question";
 import { getUsersByAuthorityId } from "@/api/user";
 import { mapGetters } from "vuex";
 import Upload from "@/view/example/simpleUploader/simpleUploader.vue";
@@ -237,6 +249,7 @@ export default {
       deleteVisible: false,
       multipleSelection: [],
       teacherArray: [],
+      question: "",
       formData: {
         name: "",
         intro: "",
@@ -275,6 +288,20 @@ export default {
     ...mapGetters("user", ["userInfo"]),
   },
   methods: {
+    async createQuestion() {
+      let r = {
+        ketiId: this.baoMingForm.ketiId,
+        studentId: this.userInfo.ID,
+        content: this.question,
+      };
+      let res = await createQuestion(r);
+      if (res.code == 0) {
+        this.$message({
+          type: "success",
+          message: "留言成功",
+        });
+      }
+    },
     async updateReview() {
       let r = {
         ID: this.baoMingForm.ketiGroup.ID,
