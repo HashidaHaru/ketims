@@ -11,29 +11,6 @@
         <el-form-item>
           <el-button @click="onSubmit" type="primary">查询</el-button>
         </el-form-item>
-        <!-- <el-form-item>
-          <el-button @click="openDialog" type="primary">新增课题申请</el-button>
-        </el-form-item> -->
-        <!-- <el-form-item>
-          <el-popover placement="top" v-model="deleteVisible" width="160">
-            <p>确定要删除吗？</p>
-            <div style="text-align: right; margin: 0">
-              <el-button @click="deleteVisible = false" size="mini" type="text"
-                >取消</el-button
-              >
-              <el-button @click="onDelete" size="mini" type="primary"
-                >确定</el-button
-              >
-            </div>
-            <el-button
-              icon="el-icon-delete"
-              size="mini"
-              slot="reference"
-              type="danger"
-              >批量删除</el-button
-            >
-          </el-popover>
-        </el-form-item> -->
       </el-form>
     </div>
     <el-table
@@ -58,17 +35,7 @@
         width="120"
       ></el-table-column>
 
-      <el-table-column
-        label="课题id"
-        prop="ketiId"
-        width="120"
-      ></el-table-column>
-
-      <el-table-column
-        label="申请材料"
-        prop="pics"
-        width="120"
-      ></el-table-column>
+      <el-table-column label="课题" prop="Keti" width="120"></el-table-column>
 
       <el-table-column label="按钮组">
         <template slot-scope="scope">
@@ -78,7 +45,7 @@
             size="small"
             type="primary"
             icon="el-icon-edit"
-            >变更</el-button
+            >详细信息</el-button
           >
           <el-button
             type="danger"
@@ -108,33 +75,36 @@
       title="弹窗操作"
     >
       <el-form :model="formData" label-position="right" label-width="80px">
-        <el-form-item label="学生id:"
+        <el-form-item label="学生"
           ><el-input
-            v-model.number="formData.studentId"
+            v-model.number="formData.Student"
             clearable
             placeholder="请输入"
           ></el-input>
         </el-form-item>
 
-        <el-form-item label="课题id:"
+        <el-form-item label="课题"
           ><el-input
-            v-model.number="formData.ketiId"
+            v-model.number="formData.Keti"
             clearable
             placeholder="请输入"
           ></el-input>
         </el-form-item>
 
         <el-form-item label="申请材料:">
-          <el-input
-            v-model="formData.pics"
-            clearable
-            placeholder="请输入"
-          ></el-input>
+          <el-upload
+            :file-list="formData.pics"
+            list-type="picture"
+            :on-preview="handlePreview"
+            action="http://101.132.104.14:8888/fileUploadAndDownload/upload"
+          >
+          </el-upload>
         </el-form-item>
       </el-form>
       <div class="dialog-footer" slot="footer">
         <el-button @click="closeDialog">取 消</el-button>
-        <el-button @click="enterDialog" type="primary">确 定</el-button>
+        <el-button @click="denyApply" type="danger">拒 绝</el-button>
+        <el-button @click="agreeApply" type="primary">同 意</el-button>
       </div>
     </el-dialog>
   </div>
@@ -186,6 +156,41 @@ export default {
     },
   },
   methods: {
+    async denyApply() {
+      let r = {};
+      r.ID = this.formData.ID;
+      r.status = 3;
+      r.studentId = this.formData.studentId;
+      r.ketiId = this.formData.ketiId;
+      let res = await updateKetiApply(r);
+      if (res.code == 0) {
+        this.$message({
+          type: "success",
+          message: "操作成功",
+        });
+        this.closeDialog();
+        this.getTableData();
+      }
+    },
+    async agreeApply() {
+      let r = {};
+      r.ID = this.formData.ID;
+      r.status = 2;
+      r.studentId = this.formData.studentId;
+      r.ketiId = this.formData.ketiId;
+      let res = await updateKetiApply(r);
+      if (res.code == 0) {
+        this.$message({
+          type: "success",
+          message: "操作成功",
+        });
+        this.closeDialog();
+        this.getTableData();
+      }
+    },
+    handlePreview(file) {
+      window.open(file.url);
+    },
     //条件搜索前端看此方法
     onSubmit() {
       this.page = 1;
@@ -236,6 +241,12 @@ export default {
       if (res.code == 0) {
         this.formData = res.data.reketiApply;
         this.dialogFormVisible = true;
+        if (res.data.reketiApply.pics === "") {
+          this.formData.pics = "[]";
+        }
+        if (res.data.reketiApply.pics !== "") {
+          this.formData.pics = JSON.parse(res.data.reketiApply.pics);
+        }
       }
     },
     closeDialog() {
@@ -243,7 +254,7 @@ export default {
       this.formData = {
         studentId: 0,
         ketiId: 0,
-        pics: "",
+        pics: [],
       };
     },
     async deleteKetiApply(row) {

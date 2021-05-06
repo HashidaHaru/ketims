@@ -214,7 +214,7 @@ import {
   findShejiKeti,
   getShejiKetiList,
 } from "@/api/shejiketi"; //  此处请自行替换地址
-import { createKetiApply } from "@/api/ketiApply";
+
 import { getUsersByAuthorityId } from "@/api/user";
 import { mapGetters } from "vuex";
 

@@ -4,6 +4,8 @@ import (
 	"gin-vue-admin/global"
 	"gin-vue-admin/model"
 	"gin-vue-admin/model/request"
+
+	"gorm.io/gorm"
 )
 
 //@author: [piexlmax](https://github.com/piexlmax)
@@ -35,7 +37,7 @@ func DeleteKetiGroup(ketiGroup model.KetiGroup) (err error) {
 //@return: err error
 
 func DeleteKetiGroupByIds(ids request.IdsReq) (err error) {
-	err = global.GVA_DB.Delete(&[]model.KetiGroup{},"id in ?",ids.Ids).Error
+	err = global.GVA_DB.Delete(&[]model.KetiGroup{}, "id in ?", ids.Ids).Error
 	return err
 }
 
@@ -46,7 +48,7 @@ func DeleteKetiGroupByIds(ids request.IdsReq) (err error) {
 //@return: err error
 
 func UpdateKetiGroup(ketiGroup model.KetiGroup) (err error) {
-	err = global.GVA_DB.Save(&ketiGroup).Error
+	err = global.GVA_DB.Model(&ketiGroup).Updates(&ketiGroup).Error
 	return err
 }
 
@@ -61,6 +63,14 @@ func GetKetiGroup(id uint) (err error, ketiGroup model.KetiGroup) {
 	return
 }
 
+func FindKetiGroup(ketiId uint, studentId uint) (m model.KetiGroup, err error) {
+	err = global.GVA_DB.Where("keti_id = ? AND student_id = ?", ketiId, studentId).First(&m).Error
+	if err == gorm.ErrRecordNotFound {
+		return m, nil
+	}
+	return
+}
+
 //@author: [piexlmax](https://github.com/piexlmax)
 //@function: GetKetiGroupInfoList
 //@description: 分页获取KetiGroup记录
@@ -70,16 +80,16 @@ func GetKetiGroup(id uint) (err error, ketiGroup model.KetiGroup) {
 func GetKetiGroupInfoList(info request.KetiGroupSearch) (err error, list interface{}, total int64) {
 	limit := info.PageSize
 	offset := info.PageSize * (info.Page - 1)
-    // 创建db
+	// 创建db
 	db := global.GVA_DB.Model(&model.KetiGroup{})
-    var ketiGroups []model.KetiGroup
-    // 如果有条件搜索 下方会自动创建搜索语句
-    if info.StudentId != 0 {
-        db = db.Where("`student_id` = ?",info.StudentId)
-    }
-    if info.KetiId != 0 {
-        db = db.Where("`keti_id` = ?",info.KetiId)
-    }
+	var ketiGroups []model.KetiGroup
+	// 如果有条件搜索 下方会自动创建搜索语句
+	if info.StudentId != 0 {
+		db = db.Where("`student_id` = ?", info.StudentId)
+	}
+	if info.KetiId != 0 {
+		db = db.Where("`keti_id` = ?", info.KetiId)
+	}
 	err = db.Count(&total).Error
 	err = db.Limit(limit).Offset(offset).Find(&ketiGroups).Error
 	return err, ketiGroups, total

@@ -82,6 +82,13 @@ export const createKetiGroup = (data) => {
      })
  }
 
+ export const checkKetiGroup = (params) => {
+    return service({
+        url: "/ketiGroup/checkKetiGroup",
+        method: 'get',
+        params
+    })
+}
 
 // @Tags KetiGroup
 // @Summary 分页获取KetiGroup列表

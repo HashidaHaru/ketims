@@ -48,7 +48,17 @@ func DeleteKetiApplyByIds(ids request.IdsReq) (err error) {
 //@return: err error
 
 func UpdateKetiApply(ketiApply model.KetiApply) (err error) {
-	err = global.GVA_DB.Save(&ketiApply).Error
+	err = global.GVA_DB.Model(&ketiApply).Updates(ketiApply).Error
+	if err != nil {
+		return
+	}
+	err = CreateKetiGroup(model.KetiGroup{
+		StudentId: ketiApply.StudentId,
+		KetiId:    ketiApply.KetiId,
+	})
+	if err != nil {
+		return
+	}
 	return err
 }
 
@@ -58,8 +68,22 @@ func UpdateKetiApply(ketiApply model.KetiApply) (err error) {
 //@param: id uint
 //@return: err error, ketiApply model.KetiApply
 
-func GetKetiApply(id uint) (err error, ketiApply model.KetiApply) {
+func GetKetiApply(id uint) (err error, ketiApply KetiApplyInfo) {
 	err = global.GVA_DB.Where("id = ?", id).First(&ketiApply).Error
+	if err != nil {
+		return
+	}
+	err, u := FindUserById(int(ketiApply.StudentId))
+	if err != nil {
+		return
+	}
+	ketiApply.Student = u.NickName
+
+	k, err := GetShejiKeti(ketiApply.KetiId)
+	if err != nil {
+		return
+	}
+	ketiApply.Keti = k.Name
 	return
 }
 
@@ -80,6 +104,7 @@ func FindKetiApply(ketiId uint, studentId uint) (ketiApply model.KetiApply, err 
 type KetiApplyInfo struct {
 	model.KetiApply
 	Student string `gorm:"-"`
+	Keti    string `gorm:"-"`
 }
 
 func GetKetiApplyInfoList(info request.KetiApplySearch) (err error, list interface{}, total int64) {
@@ -107,6 +132,12 @@ func GetKetiApplyInfoList(info request.KetiApplySearch) (err error, list interfa
 			return err, nil, 0
 		}
 		ketiApplys[index].Student = u.NickName
+
+		k, err := GetShejiKeti(item.KetiId)
+		if err != nil {
+			return err, nil, 0
+		}
+		ketiApplys[index].Keti = k.Name
 	}
 	return err, ketiApplys, total
 }

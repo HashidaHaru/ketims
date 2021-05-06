@@ -118,7 +118,28 @@
             </div>
           </el-upload>
         </el-form-item>
+
+        <template v-if="baoMingForm.status === 2">
+          <el-form-item
+            v-for="(r, index) in baoMingForm.shejiKeti.resources"
+            :key="r.key"
+            :label="'资源' + index"
+          >
+            <el-link :href="r.value" target="_blank">{{ r.value }}</el-link>
+          </el-form-item>
+
+          <el-form-item label="我的作品">
+            <el-link :href="baoMingForm.ketiGroup.project" target="_blank">
+              {{ baoMingForm.ketiGroup.project }}
+            </el-link>
+          </el-form-item>
+
+          <el-form-item label="提交作品">
+            <Upload @one-success="oneSuccess" />
+          </el-form-item>
+        </template>
       </el-form>
+
       <div class="dialog-footer" slot="footer" v-if="baoMingForm.status === 0">
         <el-button @click="submitApply" type="primary">马上报名</el-button>
       </div>
@@ -127,7 +148,7 @@
     <el-dialog
       :before-close="closeDialog"
       :visible.sync="dialogFormVisible"
-      title="弹窗操作"
+      title="详细信息"
     >
       <el-form :model="formData" label-position="right" label-width="80px">
         <el-form-item label="课题名称:">
@@ -165,6 +186,7 @@
   </div>
 </template>
 
+
 <script>
 import {
   createShejiKeti,
@@ -175,14 +197,19 @@ import {
   getShejiKetiList,
 } from "@/api/shejiketi"; //  此处请自行替换地址
 import { createKetiApply, checkKetiApply } from "@/api/ketiApply";
+import { checkKetiGroup, updateKetiGroup } from "@/api/ketiGroup";
 import { getUsersByAuthorityId } from "@/api/user";
 import { mapGetters } from "vuex";
+import Upload from "@/view/example/simpleUploader/simpleUploader.vue";
 
 import { formatTimeToStr } from "@/utils/date";
 import infoList from "@/mixins/infoList";
 export default {
   name: "ShejiKeti",
   mixins: [infoList],
+  components: {
+    Upload,
+  },
   data() {
     return {
       listApi: getShejiKetiList,
@@ -203,6 +230,9 @@ export default {
         pics: [],
         ketiId: 0,
         status: 0,
+        shejiKeti: {},
+        ketiGroup: {},
+        questions: [],
       },
     };
   },
@@ -227,6 +257,20 @@ export default {
     ...mapGetters("user", ["userInfo"]),
   },
   methods: {
+    async oneSuccess(name) {
+      const url = "http://101.132.104.14:8888/uploads/file/" + name;
+      let r = {
+        ID: this.baoMingForm.ketiGroup.ID,
+        project: url,
+      };
+      let res = await updateKetiGroup(r);
+      if (res.code == 0) {
+        this.$message({
+          type: "success",
+          message: "上传成功",
+        });
+      }
+    },
     async submitApply() {
       let r = {
         studentId: this.userInfo.ID,
@@ -305,7 +349,7 @@ export default {
       }
     },
     async checkKetiApply(row) {
-      const res = await checkKetiApply({
+      let res = await checkKetiApply({
         ketiId: row.ID,
         studentId: this.userInfo.ID,
       });
@@ -315,6 +359,18 @@ export default {
       if (res.data.ketiApply.pics !== "") {
         this.baoMingForm.pics = JSON.parse(res.data.ketiApply.pics);
       }
+
+      res = await checkKetiGroup({
+        ketiId: row.ID,
+        studentId: this.userInfo.ID,
+      });
+      this.baoMingForm.ketiGroup = res.data.ketiGroup;
+
+      res = await findShejiKeti({ ID: row.ID });
+      this.baoMingForm.shejiKeti = res.data.reshejiketi;
+      this.baoMingForm.shejiKeti.resources = JSON.parse(
+        this.baoMingForm.shejiKeti.resources
+      );
       this.baomingFormVisible = true;
     },
     async updateShejiKeti(row) {
@@ -335,10 +391,6 @@ export default {
     },
     closeBaomingDialog() {
       this.baomingFormVisible = false;
-      this.baoMingForm = {
-        pics: [],
-        ketiId: 0,
-      };
     },
     async deleteShejiKeti(row) {
       const res = await deleteShejiKeti({ ID: row.ID });
