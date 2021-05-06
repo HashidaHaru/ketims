@@ -127,15 +127,33 @@
           >
             <el-link :href="r.value" target="_blank">{{ r.value }}</el-link>
           </el-form-item>
-
+          <el-form-item label="提交作品">
+            <Upload @one-success="oneSuccess" />
+          </el-form-item>
           <el-form-item label="我的作品">
             <el-link :href="baoMingForm.ketiGroup.project" target="_blank">
               {{ baoMingForm.ketiGroup.project }}
             </el-link>
           </el-form-item>
+          <el-form-item label="我的成绩">
+            <h3>
+              {{ baoMingForm.ketiGroup.score }}
+            </h3>
+          </el-form-item>
 
-          <el-form-item label="提交作品">
-            <Upload @one-success="oneSuccess" />
+          <el-form-item label="教学评价">
+            <el-row :gutter="20">
+              <el-col :span="8">
+                <el-input-number
+                  v-model="baoMingForm.ketiGroup.review"
+                  :min="0"
+                  :max="100"
+                ></el-input-number>
+              </el-col>
+              <el-col :span="4">
+                <el-button @click.prevent="updateReview">提交评价</el-button>
+              </el-col>
+            </el-row>
           </el-form-item>
         </template>
       </el-form>
@@ -257,6 +275,19 @@ export default {
     ...mapGetters("user", ["userInfo"]),
   },
   methods: {
+    async updateReview() {
+      let r = {
+        ID: this.baoMingForm.ketiGroup.ID,
+        review: this.baoMingForm.ketiGroup.review,
+      };
+      let res = await updateKetiGroup(r);
+      if (res.code == 0) {
+        this.$message({
+          type: "success",
+          message: "评价成功",
+        });
+      }
+    },
     async oneSuccess(name) {
       const url = "http://101.132.104.14:8888/uploads/file/" + name;
       let r = {
