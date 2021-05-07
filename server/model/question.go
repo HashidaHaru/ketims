@@ -11,6 +11,7 @@ type Question struct {
 	KetiId    uint   `json:"ketiId" form:"ketiId" gorm:"column:keti_id;comment:课题id;type:bigint;size:20;"`
 	Content   string `json:"content" form:"content" gorm:"column:content;comment:留言内容;type:varchar(2000);size:2000;"`
 	StudentId uint   `json:"studentId" form:"studentId" gorm:"column:student_id"`
+	Reply     string `json:"reply" form:"reply" gorm:"column:reply"`
 }
 
 func (Question) TableName() string {

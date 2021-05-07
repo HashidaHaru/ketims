@@ -35,7 +35,7 @@ func DeleteQuestion(question model.Question) (err error) {
 //@return: err error
 
 func DeleteQuestionByIds(ids request.IdsReq) (err error) {
-	err = global.GVA_DB.Delete(&[]model.Question{},"id in ?",ids.Ids).Error
+	err = global.GVA_DB.Delete(&[]model.Question{}, "id in ?", ids.Ids).Error
 	return err
 }
 
@@ -46,7 +46,7 @@ func DeleteQuestionByIds(ids request.IdsReq) (err error) {
 //@return: err error
 
 func UpdateQuestion(question model.Question) (err error) {
-	err = global.GVA_DB.Save(&question).Error
+	err = global.GVA_DB.Model(&question).Updates(question).Error
 	return err
 }
 
@@ -70,13 +70,13 @@ func GetQuestion(id uint) (err error, question model.Question) {
 func GetQuestionInfoList(info request.QuestionSearch) (err error, list interface{}, total int64) {
 	limit := info.PageSize
 	offset := info.PageSize * (info.Page - 1)
-    // 创建db
+	// 创建db
 	db := global.GVA_DB.Model(&model.Question{})
-    var questions []model.Question
-    // 如果有条件搜索 下方会自动创建搜索语句
-    if info.KetiId != 0 {
-        db = db.Where("`keti_id` = ?",info.KetiId)
-    }
+	var questions []model.Question
+	// 如果有条件搜索 下方会自动创建搜索语句
+	if info.KetiId != 0 {
+		db = db.Where("`keti_id` = ?", info.KetiId)
+	}
 	err = db.Count(&total).Error
 	err = db.Limit(limit).Offset(offset).Find(&questions).Error
 	return err, questions, total

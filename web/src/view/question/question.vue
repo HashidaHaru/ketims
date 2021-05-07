@@ -66,6 +66,7 @@
         prop="content"
         width="120"
       ></el-table-column>
+      <el-table-column label="回复" prop="reply" width="120"></el-table-column>
 
       <el-table-column label="按钮组">
         <template slot-scope="scope">
@@ -75,7 +76,7 @@
             size="small"
             type="primary"
             icon="el-icon-edit"
-            >变更</el-button
+            >回复</el-button
           >
           <el-button
             type="danger"
@@ -105,17 +106,9 @@
       title="弹窗操作"
     >
       <el-form :model="formData" label-position="right" label-width="80px">
-        <el-form-item label="课题id:"
-          ><el-input
-            v-model.number="formData.ketiId"
-            clearable
-            placeholder="请输入"
-          ></el-input>
-        </el-form-item>
-
-        <el-form-item label="留言内容:">
+        <el-form-item label="回复:">
           <el-input
-            v-model="formData.content"
+            v-model="formData.reply"
             clearable
             placeholder="请输入"
           ></el-input>
